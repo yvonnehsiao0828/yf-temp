@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上海四天三夜．冬日聖誕綺夢 (台中出發)</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            background-color: #fdf6e3;
+            color: #444;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: #d35400; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-bottom: 10px; text-align: center; }
+        
+        /* Header Container for Collapsible Sections */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #b2ebf2;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header-row h2 {
+            color: #00838f;
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .btn-fold {
+            background-color: #e0f7fa;
+            border: 1px solid #00acc1;
+            color: #006064;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-fold:hover {
+            background-color: #b2ebf2;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        /* Map Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-toggle {
+            padding: 8px 20px;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            transition: 0.3s;
+            background-color: #eee;
+            color: #555;
+        }
+
+        .btn-toggle.active-d2 { background-color: #ffccbc; color: #bf360c; border-color: #ff5722; }
+        .btn-toggle.active-d3 { background-color: #e1bee7; color: #7b1fa2; border-color: #9c27b0; }
+        .btn-toggle.active-all { background-color: #b2dfdb; color: #00695c; border-color: #009688; }
+        
+        #mapCanvas {
+            width: 100%;
+            border-radius: 15px;
+            border: 2px solid #eee;
+            background-color: #fffbf0;
+            cursor: pointer;
+        }
+
+        /* Schedule Tables */
+        .day-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .bg-d1 { background-color: #78909c; } 
+        .bg-d2 { background-color: #ff7043; } 
+        .bg-d3 { background-color: #ab47bc; } 
+        .bg-d4 { background-color: #5c6bc0; } 
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-bottom: 10px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background-color: #fafafa; color: #555; width: 22%; font-weight: bold; }
+        tr:hover { background-color: #fce4ec; }
+        
+        .transport { color: #1565c0; font-weight: bold; font-size: 0.9em; }
+        .tw-leg { color: #2e7d32; font-weight: bold; }
+
+        /* Info Grid (Attractions & Notes) */
+        .grid-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #fdfdfd;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 5px solid #ccc;
+        }
+        
+        .card-attr { border-left-color: #00bcd4; }
+        .card-hotel { border-left-color: #e91e63; background-color: #fff0f5; }
+        .card-note { border-left-color: #ffb74d; }
+        
+        .card h4 { margin-top: 0; margin-bottom: 10px; color: #333; display: flex; align-items: center; justify-content: space-between; }
+        .card p { margin: 5px 0; font-size: 0.9em; color: #666; line-height: 1.5; }
+
+        /* Reviews Section Style */
+        .review-card {
+            background-color: #f1f8e9;
+            border-left: 5px solid #8bc34a;
+        }
+        .review-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .user-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #c5e1a5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .stars { color: #fbc02d; margin-left: auto; font-size: 0.9em; }
+
+        /* Photo Spots Style */
+        .photo-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .photo-card:hover {
+            transform: translateY(-5px);
+        }
+        .photo-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+        .photo-info {
+            padding: 15px;
+        }
+        .photo-tag {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .photo-detail-row {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: baseline;
+        }
+        .photo-detail-row i {
+            margin-right: 6px;
+            width: 16px;
+        }
+        .photo-tips {
+            background-color: #fff8e1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #f57f17;
+            margin-top: 10px;
+        }
+        
+        /* Story Section */
+        .story-section {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            padding: 40px;
+            text-align: center;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+        .story-text {
+            font-family: "Georgia", "Times New Roman", serif;
+            font-style: italic;
+            color: #5d4037;
+            font-size: 1.1em;
+            line-height: 1.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .story-title {
+            font-size: 1.5em;
+            color: #d84315;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Toggle Visibility Helper */
+        .collapsed {
+            display: none !important;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>❄️ 2025 上海．冬日聖誕綺夢</h1>
+    <div style="text-align: center; color: #666; margin-bottom: 20px;">
+        Taipei ✈️ Shanghai<br>
+        2025.12.25 - 2025.12.28
+    </div>
+
+    <!-- 1. 地圖區塊 -->
+    <div class="container">
+        <div class="header-row">
+            <h2>🗺️ 每日路線</h2>
+        </div>
+        <div class="controls">
+            <button class="btn-toggle active-d2" onclick="toggleMap('day2')" id="btnDay2">Day 2 (外灘經典)</button>
+            <button class="btn-toggle" onclick="toggleMap('day3')" id="btnDay3">Day 3 (文藝雜技)</button>
+            <button class="btn-toggle" onclick="toggleMap('all')" id="btnAll">顯示全部</button>
+        </div>
+        <canvas id="mapCanvas" width="850" height="1100"></canvas>
+    </div>
+
+    <!-- 2. 行程區塊 -->
+    <div class="container">
+        <div class="header-row">
+            <h2>📅 行程時間表</h2>
+            <button class="btn-fold" onclick="toggleSection('scheduleContent', this)">收合 ▲</button>
+        </div>
+        
+        <div id="scheduleContent">
+            <div class="day-badge bg-d1">Day 1：12/25 (四) 啟程與聖誕夜</div>
+            <table>
+                <tr><th class="tw-leg">11:00 - 13:30</th><td class="tw-leg"><span class="transport">🚙 包車</span> 台中皇城帝寶 ➔ 桃園機場 T2</td></tr>
+                <tr><th>13:30 - 16:35</th><td>🛂 機場報到、行李托運、午餐</td></tr>
+                <tr><th>16:35 - 18:35</th><td>✈️ 華航 CI503 (TPE ➔ PVG T1)</td></tr>
+                <tr><th>19:30 - 20:30</th><td><span class="transport">🚗 計程車</span> 前往飯店 (約60分)</td></tr>
+                <tr><th>20:30</th><td>🏨 入住：如家精選 (陸家嘴商城路店)</td></tr>
+                <tr><th>21:00</th><td>🍜 晚餐：外賣或附近商場覓食 (聖誕快樂!)</td></tr>
+            </table>
+
+            <div class="day-badge bg-d2">Day 2：12/26 (五) 繁花上海 & 俄式風情</div>
+            <table>
+                <tr><th>10:00 - 10:25</th><td><span class="transport">🚗 計程車</span> 飯店 ➔ 城隍廟</td></tr>
+                <tr><th>10:25 - 12:15</th><td>📍 <b>城隍廟 + 豫園</b> (午餐：綠波廊)</td></tr>
+                <tr><th>12:15 - 12:40</th><td><span class="transport">🚗 計程車</span> 移動 (前往虹口區)</td></tr>
+                <tr><th>12:40 - 13:40</th><td>📍 <b>俄羅斯出口中心 (俄羅斯館)</b> 虹口店</td></tr>
+                <tr><th>13:40 - 14:00</th><td><span class="transport">🚗 計程車</span> 移動 (前往南京步行街)</td></tr>
+                <tr><th>14:00 - 15:15</th><td>📍 <b>南京步行街</b> (搭小火車/逛M&M/樂高店)</td></tr>
+                <tr><th>15:15 - 15:30</th><td><span class="transport">🚶 步行</span> 往東走到外灘</td></tr>
+                <tr><th>15:30 - 17:00</th><td>📍 <b>外灘萬國建築群</b> (和平飯店、日落)</td></tr>
+                <tr><th>17:00 - 17:30</th><td><span class="transport">⛴️ 渡輪/計程車</span> 過江 ➔ 陸家嘴</td></tr>
+                <tr><th>17:30 - 18:45</th><td>📍 <b>東方明珠</b> (塔下拍照/參觀)</td></tr>
+                <tr><th>18:45 - 19:00</th><td><span class="transport">🚶 步行</span> 天橋漫步</td></tr>
+                <tr><th>19:00 - 20:30</th><td>📍 <b>陸家嘴三件套</b> + 晚餐 (正大廣場/國金中心)</td></tr>
+                <tr><th>20:30 - 22:00</th><td>💆 <b>按摩放鬆</b> (推薦：大桶大/康駿)</td></tr>
+                <tr><th>22:00 - 22:20</th><td>🏨 <b>返回飯店休息</b></td></tr>
+            </table>
+
+            <div class="day-badge bg-d3">Day 3：12/27 (六) 時空交錯</div>
+            <table>
+                <tr><th>10:00 - 10:30</th><td><span class="transport">🚙 包車</span> 飯店 ➔ 徐家匯</td></tr>
+                <tr><th>10:30 - 11:15</th><td>📍 <b>徐家匯 (美羅城)</b> (停留45分)</td></tr>
+                <tr><th>11:15 - 11:30</th><td><span class="transport">🚙 包車</span> 移動</td></tr>
+                <tr><th>11:30 - 13:00</th><td>📍 <b>武康路</b> (武康大樓拍照) + 午餐</td></tr>
+                <tr><th>13:00 - 13:20</th><td><span class="transport">🚙 包車</span> 移動</td></tr>
+                <tr><th>13:20 - 14:20</th><td>📍 <b>靜安寺</b> + 買伴手禮(哈爾濱食品廠)</td></tr>
+                <tr><th>14:20 - 14:30</th><td><span class="transport">🚙 包車</span> 移動</td></tr>
+                <tr><th>14:30 - 15:15</th><td>📍 <b>張園</b> (石庫門時尚街區)</td></tr>
+                <tr><th>15:15 - 15:30</th><td><span class="transport">🚶 步行/車</span> 移動 (兩地距離很近)</td></tr>
+                <tr><th>15:30 - 16:15</th><td>📍 <b>LV路易號</b> (拍照打卡)</td></tr>
+                <tr><th>16:15 - 16:40</th><td><span class="transport">🚙 包車</span> 移動</td></tr>
+                <tr><th>16:40 - 18:30</th><td>📍 <b>天安千樹</b> + 晚餐：漁哥·湛江 (建議17:00用餐)</td></tr>
+                <tr><th>18:30 - 18:50</th><td><span class="transport">🚙 包車</span> 移動前往馬戲城</td></tr>
+                <tr><th>19:00 - 20:40</th><td>🎪 <b>時空之旅 2</b> @上海馬戲城 (震撼雜技)</td></tr>
+                <tr><th>20:40 - 21:20</th><td>🏨 <b>返回飯店休息</b></td></tr>
+            </table>
+
+            <div class="day-badge bg-d4">Day 4：12/28 (日) 歸途</div>
+            <table>
+                <tr><th>08:45 - 09:45</th><td><span class="transport">🚗 計程車</span> 飯店 ➔ 浦東機場 T1</td></tr>
+                <tr><th>10:00 - 12:05</th><td>🛍️ 報到、出境安檢、免稅店採購</td></tr>
+                <tr><th>12:05 - 14:15</th><td>✈️ 華航 CI504 (PVG T1 ➔ TPE T2)</td></tr>
+                <tr><th>14:15 - 15:00</th><td>🛂 領取行李、入境</td></tr>
+                <tr><th class="tw-leg">15:00 - 17:30</th><td class="tw-leg"><span class="transport">🚙 包車</span> 桃園機場 T2 ➔ 台中皇城帝寶</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3. 景點資訊 (可折疊) -->
+    <div class="container">
+        <div class="header-row">
+            <h2>ℹ️ 景點資訊</h2>
+            <button class="btn-fold" onclick="toggleSection('attrContent', this)">收合 ▲</button>
+        </div>
+        
+        <div id="attrContent" class="grid-section">
+            <div class="card card-hotel">
+                <h4>0. 住宿：如家精選酒店 <span>🏨</span></h4>
+                <p><strong>地址：</strong>上海, 浦東新區, 張楊路579號5層</p>
+                <p><strong>交通：</strong>地鐵9號線商城路站 / 2號線東昌路站</p>
+            </div>
+            <div class="card card-attr">
+                <h4>1. 城隍廟 & 豫園 <span>🏮</span></h4>
+                <p><strong>地址：</strong>黃浦區豫園老街279號</p>
+                <p><strong>時間：</strong>09:00 - 16:30 (週一閉園)</p>
+                <p><strong>注意：</strong>九曲橋人多請注意財物；午餐推薦綠波廊或南翔饅頭店。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>2. 俄羅斯出口中心 <span>🏰</span></h4>
+                <p><strong>地址：</strong>虹口區四川北路989號 (今潮8弄)</p>
+                <p><strong>特色：</strong>俄羅斯國家館，可購買正宗伏特加、巧克力、蜂蜜等伴手禮，建築富有特色。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>3. 南京步行街 <span>🛍️</span></h4>
+                <p><strong>地址：</strong>黃浦區南京東路</p>
+                <p><strong>特色：</strong>「中華商業第一街」，可搭乘鐺鐺車(小火車)遊覽，有許多老字號食品店與百貨。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>4. 外灘 (The Bund) <span>🏛️</span></h4>
+                <p><strong>地址：</strong>黃浦區中山東一路</p>
+                <p><strong>特色：</strong>從南京東路走到底即抵達外灘，建議往南走到金陵東路渡口搭船。</p>
+                <p><strong>注意：</strong>冬日江邊風大，務必戴帽子保暖。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>5. 東方明珠 <span>🗼</span></h4>
+                <p><strong>地址：</strong>浦東新區世紀大道1號</p>
+                <p><strong>亮點：</strong>上海地標，渡輪下船後步行可達。若不上塔，可在廣場拍全景。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>6. 陸家嘴三件套 <span>🏙️</span></h4>
+                <p><strong>地址：</strong>浦東新區東泰路與花園石橋路交界</p>
+                <p><strong>拍照：</strong>仰拍上海中心、環球金融中心、金茂大廈的最佳網紅視角。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>7. 按摩推薦 (大桶大/康駿) <span>💆</span></h4>
+                <p><strong>地址：</strong>浦東新區商城路附近</p>
+                <p><strong>時間：</strong>通常營業至凌晨 01:00</p>
+                <p><strong>建議：</strong>行程結束後放鬆，建議透過大眾點評App查看評價與團購券。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>8. 徐家匯 (美羅城) <span>🔮</span></h4>
+                <p><strong>地址：</strong>徐匯區肇嘉浜路1111號</p>
+                <p><strong>特色：</strong>巨型球體建築、裸眼3D螢幕、日系品牌。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>9. 武康路 & 武康大樓 <span>🍂</span></h4>
+                <p><strong>地址：</strong>徐匯區淮海中路1850號</p>
+                <p><strong>注意：</strong>武康大樓最佳拍攝點在對面馬路；該區為住宅區請保持安靜。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>10. 靜安寺 <span>🏯</span></h4>
+                <p><strong>地址：</strong>靜安區南京西路1686號</p>
+                <p><strong>伴手禮：</strong>附近有「哈爾濱食品廠」，必買杏仁排。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>11. 張園 (Zhangyuan) <span>🧱</span></h4>
+                <p><strong>地址：</strong>靜安區威海路588弄</p>
+                <p><strong>特色：</strong>「海上第一名園」，完整保留的石庫門建築群。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>12. LV路易號 / 品牌快閃 <span>👜</span></h4>
+                <p><strong>位置：</strong>通常位於張園內或蘇州河畔 (需確認當季活動地點)</p>
+                <p><strong>特色：</strong>LV 在上海常設有大型裝置藝術或主題展覽，打卡熱點。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>13. 天安千樹 & 漁哥·湛江 <span>🌳</span></h4>
+                <p><strong>地址：</strong>普陀區莫干山路600號</p>
+                <p><strong>晚餐：</strong>漁哥·湛江 (L4層)，主打白切雞與海鮮，建議提前訂位。</p>
+            </div>
+            <div class="card card-attr">
+                <h4>14. 時空之旅2 (ERA 2) <span>🎪</span></h4>
+                <p><strong>地址：</strong>靜安區共和新路2266號 (上海馬戲城)</p>
+                <p><strong>時間：</strong>19:00 - 20:40 (含中場休息)</p>
+                <p><strong>注意：</strong>請務必提前網路購票；遲到需等待中場才能進入。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 注意事項 (可折疊) -->
+    <div class="container">
+        <div class="header-row">
+            <h2>📝 旅遊小叮嚀</h2>
+            <button class="btn-fold" onclick="toggleSection('noteContent', this)">收合 ▲</button>
+        </div>
+
+        <div id="noteContent" class="grid-section">
+            <div class="card card-note">
+                <h4>🎒 必備清單</h4>
+                <p><strong>證件：</strong>台胞證 (確認效期)、護照。</p>
+                <p><strong>數位：</strong>網卡 (免翻牆)、行動電源。</p>
+                <p><strong>App：</strong>支付寶 (綁台卡)、微信、高德地圖。</p>
+            </div>
+            <div class="card card-note">
+                <h4>❄️ 氣候與穿著</h4>
+                <p><strong>氣溫：</strong>12月底上海濕冷 (2-8°C)。</p>
+                <p><strong>穿搭：</strong>羽絨衣、圍巾、手套、好走的鞋。</p>
+                <p><strong>提醒：</strong>室內暖氣強，建議洋蔥式穿法。</p>
+            </div>
+            <div class="card card-note">
+                <h4>🎁 伴手禮</h4>
+                <p><strong>哈爾濱食品廠：</strong>杏仁排、西番尼。</p>
+                <p><strong>其他：</strong>大白兔奶糖、雪花膏。</p>
+                <p><strong>位置：</strong>靜安寺、淮海中路皆有分店。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 旅遊評鑑 -->
+    <div class="container">
+        <div class="header-row">
+            <h2>⭐ 旅遊評鑑</h2>
+            <button class="btn-fold" onclick="toggleSection('reviewContent', this)">收合 ▲</button>
+        </div>
+        <div id="reviewContent" class="grid-section">
+            
+            <div class="card review-card">
+                <div class="review-header">
+                    <div class="user-icon">📸</div>
+                    <strong>攝影狂魔</strong>
+                    <div class="stars">★★★★★</div>
+                </div>
+                <h4>拍照推薦：北外灘</h4>
+                <p>如果想拍萬國建築與陸家嘴全景，強烈建議去「北外灘」！那裡人比外灘主區少很多，視角更開闊，能輕鬆拍出無人擋鏡頭的大片。</p>
+            </div>
+
+            <div class="card review-card">
+                <div class="review-header">
+                    <div class="user-icon">🔍</div>
+                    <strong>巷弄探險家</strong>
+                    <div class="stars">★★★★☆</div>
+                </div>
+                <h4>私房景點：張園 & 俄羅斯館</h4>
+                <p>張園的石庫門建築修復得非常美，細節滿滿；虹口的俄羅斯出口中心很有異國情調，不像南京路那麼擁擠，值得花時間慢慢逛。</p>
+            </div>
+
+            <div class="card review-card">
+                <div class="review-header">
+                    <div class="user-icon">🍽️</div>
+                    <strong>吃貨小隊長</strong>
+                    <div class="stars">★★★★★</div>
+                </div>
+                <h4>餐點推薦：漁哥·湛江</h4>
+                <p>天安千樹裡的「漁哥·湛江」，白切雞真的絕！雞皮爽脆肉質嫩滑，海鮮也很新鮮，CP值超高，絕對是好吃不踩雷的選擇。</p>
+            </div>
+
+            <div class="card review-card">
+                <div class="review-header">
+                    <div class="user-icon">🛍️</div>
+                    <strong>伴手禮達人</strong>
+                    <div class="stars">★★★★★</div>
+                </div>
+                <h4>必買推薦：哈爾濱食品廠</h4>
+                <p>杏仁排絕對是必買！帶回去辦公室分送同事秒殺。另外大白兔的聯名商品包裝很可愛，送禮非常有面子。</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 6. 拍照景點 (New - Fixed Links) -->
+    <div class="container">
+        <div class="header-row">
+            <h2>📸 拍照景點</h2>
+            <button class="btn-fold" onclick="toggleSection('photoContent', this)">收合 ▲</button>
+        </div>
+        <div id="photoContent" class="grid-section">
+            
+            <!-- Card 1: The Bund -->
+            <div class="photo-card">
+                <img src="https://ak-d.tripcdn.com/images/10040m000000dht6p0F19_C_1200_800_Q70.webp?proc=source%2ftrip" class="photo-img" alt="外灘夜景">
+                <div class="photo-info">
+                    <span class="photo-tag">夜景</span> <span class="photo-tag">地標</span>
+                    <h4>外灘萬國建築群</h4>
+                    <div class="photo-detail-row">📍 <strong>地點：</strong>金陵東路渡口附近</div>
+                    <div class="photo-detail-row">📐 <strong>角度：</strong>低角度仰拍或倚靠江邊欄杆</div>
+                    <div class="photo-tips">
+                        💡 <strong>參數：</strong>光圈 f/2.8 以上，夜間建議使用腳架或手持夜景模式，曝光 1-2秒。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Wukang Mansion -->
+            <div class="photo-card">
+                <img src="https://imgs.699pic.com/images/500/634/714.jpg!detail.v1" class="photo-img" alt="武康大樓">
+                <div class="photo-info">
+                    <span class="photo-tag">建築</span> <span class="photo-tag">網紅</span>
+                    <h4>武康大樓 (諾曼第公寓)</h4>
+                    <div class="photo-detail-row">📍 <strong>地點：</strong>淮海中路/武康路路口對面</div>
+                    <div class="photo-detail-row">📐 <strong>角度：</strong>廣角鏡頭拍攝大樓船型全貌</div>
+                    <div class="photo-tips">
+                        💡 <strong>參數：</strong>白天光線充足，ISO 100，使用人像模式虛化背景雜亂人群。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Yu Garden -->
+            <div class="photo-card">
+                <img src="https://ak-d.tripcdn.com/images/1mi4o224x8uh5pubn5636_W_640_0_R5_Q80.jpg?proc=source/trip" class="photo-img" alt="豫園">
+                <div class="photo-info">
+                    <span class="photo-tag">古典</span> <span class="photo-tag">人像</span>
+                    <h4>豫園 / 九曲橋</h4>
+                    <div class="photo-detail-row">📍 <strong>地點：</strong>九曲橋中心或湖心亭旁</div>
+                    <div class="photo-detail-row">📐 <strong>角度：</strong>利用飛簷翹角作為前景框架</div>
+                    <div class="photo-tips">
+                        💡 <strong>說明：</strong>建議避開正午頂光，下午3-4點光線柔和，適合拍古裝或漢服人像。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Lujiazui -->
+            <div class="photo-card">
+                <img src="https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?auto=format&fit=crop&w=600&q=80" class="photo-img" alt="陸家嘴三件套">
+                <div class="photo-info">
+                    <span class="photo-tag">魔幻</span> <span class="photo-tag">廣角</span>
+                    <h4>陸家嘴三件套</h4>
+                    <div class="photo-detail-row">📍 <strong>地點：</strong>東泰路與花園石橋路路口</div>
+                    <div class="photo-detail-row">📐 <strong>角度：</strong>手機貼近地面超廣角仰拍</div>
+                    <div class="photo-tips">
+                        💡 <strong>技巧：</strong>開啟格線構圖，讓三棟大樓形成三角形幾何構圖，極具視覺衝擊力。
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 7. 旅程故事 -->
+    <div class="container story-section">
+        <div class="story-title">📖 關於這趟旅程</div>
+        <div class="story-text">
+            <p>
+                這不僅僅是一次旅行，而是一場穿越時空的對話。<br>
+                從 1930 年代的十里洋場，到 2025 年的摩登天際線，上海將以它獨有的溫度擁抱你。
+            </p>
+            <p>
+                在 <b>12月25日</b> 這個特別的日子出發，<br>
+                從台中的家門，一路飛向黃浦江畔的燈火輝煌。<br>
+                你們將在梧桐樹下的武康路聽見歷史的低語，<br>
+                在陸家嘴的雲端看見未來的模樣。
+            </p>
+            <p>
+                願外灘的風，吹走整年的疲憊；<br>
+                願城隍廟的燈，照亮新年的期盼。<br>
+                這四天三夜，不求走遍每一條街，只求在每一個轉角，<br>
+                都留下屬於你們，最溫暖的冬日記憶。
+            </p>
+            <p style="margin-top: 30px; font-size: 0.9em; color: #d84315;">—— 祝 旅途愉快 Bon Voyage ——</p>
+        </div>
+    </div>
+
+    <script>
+        // 設定目前的顯示狀態
+        let mapState = { day2: true, day3: false };
+
+        window.onload = function() {
+            drawMap();
+            updateButtons();
+        };
+
+        function toggleMap(type) {
+            if (type === 'day2') {
+                mapState.day2 = true; mapState.day3 = false;
+            } else if (type === 'day3') {
+                mapState.day2 = false; mapState.day3 = true;
+            } else if (type === 'all') {
+                mapState.day2 = true; mapState.day3 = true;
+            }
+            updateButtons();
+            drawMap();
+        }
+
+        function updateButtons() {
+            document.getElementById('btnDay2').className = 'btn-toggle';
+            document.getElementById('btnDay3').className = 'btn-toggle';
+            document.getElementById('btnAll').className = 'btn-toggle';
+
+            if (mapState.day2 && !mapState.day3) {
+                document.getElementById('btnDay2').classList.add('active-d2');
+            } else if (!mapState.day2 && mapState.day3) {
+                document.getElementById('btnDay3').classList.add('active-d3');
+            } else {
+                document.getElementById('btnAll').classList.add('active-all');
+            }
+        }
+
+        // 摺疊功能 Function
+        function toggleSection(id, btn) {
+            var content = document.getElementById(id);
+            if (content.style.display === "none") {
+                if (id === 'scheduleContent') content.style.display = "block";
+                else content.style.display = "grid"; 
+                btn.innerHTML = "收合 ▲";
+            } else {
+                content.style.display = "none";
+                btn.innerHTML = "展開 ▼";
+            }
+        }
+
+        function drawMap() {
+            const canvas = document.getElementById('mapCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "#fffbf0"; 
+            ctx.fillRect(0, 0, width, height);
+
+            // 黃浦江
+            ctx.beginPath();
+            ctx.moveTo(width/2 + 20, height); 
+            ctx.bezierCurveTo(width/2 - 50, height - 300, width/2 + 250, height - 600, width/2 + 20, 0);
+            ctx.lineWidth = 60;
+            ctx.strokeStyle = "#b3e5fc"; 
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // 區域文字
+            ctx.font = "bold 30px Microsoft JhengHei";
+            ctx.fillStyle = "#81d4fa";
+            ctx.fillText("黃浦江", width/2 + 150, height/2);
+            ctx.font = "bold 40px Microsoft JhengHei";
+            ctx.fillStyle = "#e0e0e0";
+            ctx.fillText("浦西 (Puxi)", 50, 100);
+            ctx.fillText("浦東 (Pudong)", width - 250, 150);
+
+            // 定義座標 (包含 labelAlign 屬性)
+            const hotel = {x: 720, y: 300, label: "如家精選酒店", icon: "🏨", labelAlign: "top"};
+            const airport = {x: 750, y: 900, label: "浦東機場 PVG", icon: "✈️"};
+            const orientalPearl = {x: 580, y: 480, label: "東方明珠", icon: "🗼", labelAlign: "right"};
+            const trio = {x: 700, y: 600, label: "陸家嘴三件套", icon: "🏙️", labelAlign: "bottom"};
+
+            const yuyuan = {x: 250, y: 750, label: "城隍廟/豫園", icon: "🏮", labelAlign: "bottom"};
+            const russia = {x: 350, y: 280, label: "俄羅斯館(虹口)", icon: "🏰", labelAlign: "top"};
+            const nanjingRd = {x: 200, y: 480, label: "南京步行街", icon: "🛍️", labelAlign: "left"};
+            const bund = {x: 400, y: 600, label: "外灘/萬國建築", icon: "🏛️", labelAlign: "top"};
+            
+            const xujiahui = {x: 160, y: 950, label: "徐家匯", icon: "🔮", labelAlign: "bottom"};
+            const wukang = {x: 140, y: 750, label: "武康路", icon: "🍂", labelAlign: "left"};
+            const jingan = {x: 180, y: 500, label: "靜安寺", icon: "🏯", labelAlign: "left"};
+            const zhangyuan = {x: 280, y: 420, label: "張園", icon: "🧱", labelAlign: "top"};
+            const lv = {x: 360, y: 320, label: "LV路易號", icon: "👜", labelAlign: "right"}; 
+            const thousandTrees = {x: 180, y: 220, label: "天安千樹", icon: "🌳", labelAlign: "left"};
+            const circus = {x: 420, y: 120, label: "馬戲城", icon: "🎪", labelAlign: "right"};
+
+            // 繪製 Day 2
+            if (mapState.day2) {
+                // 1. Hotel -> Yuyuan (Light)
+                drawPath(ctx, hotel, yuyuan, "#ffab91", "1", "", 0.2);
+                // 2. Yuyuan -> Russia (Dark)
+                drawPath(ctx, yuyuan, russia, "#d84315", "2", "", 0.5);
+                // 3. Russia -> Nanjing Rd (Light)
+                drawPath(ctx, russia, nanjingRd, "#ffab91", "3");
+                // 4. Nanjing Rd -> Bund (Dark)
+                drawPath(ctx, nanjingRd, bund, "#d84315", "4");
+                // 5. Bund -> Oriental Pearl (Light)
+                drawPath(ctx, bund, orientalPearl, "#ffab91", "5", "過江");
+                // 6. Oriental Pearl -> Trio (Dark)
+                drawPath(ctx, orientalPearl, trio, "#d84315", "6");
+                // 7. Trio -> Hotel (Light)
+                drawPath(ctx, trio, hotel, "#ffab91", "7");
+
+                drawLocation(ctx, yuyuan, "#fff", "#ff5722");
+                drawLocation(ctx, russia, "#fff", "#ff5722");
+                drawLocation(ctx, nanjingRd, "#fff", "#ff5722");
+                drawLocation(ctx, bund, "#fff", "#ff5722");
+                drawLocation(ctx, orientalPearl, "#fff", "#ff5722");
+                drawLocation(ctx, trio, "#fff", "#ff5722");
+            }
+
+            // 繪製 Day 3
+            if (mapState.day3) {
+                // 1. Hotel -> Xujiahui (Light)
+                drawPath(ctx, hotel, xujiahui, "#ce93d8", "1");
+                // 2. Xujiahui -> Wukang (Dark)
+                drawPath(ctx, xujiahui, wukang, "#7b1fa2", "2");
+                // 3. Wukang -> Jingan (Light)
+                drawPath(ctx, wukang, jingan, "#ce93d8", "3");
+                // 4. Jingan -> Zhangyuan (Dark)
+                drawPath(ctx, jingan, zhangyuan, "#7b1fa2", "4");
+                // 5. Zhangyuan -> LV (Light)
+                drawPath(ctx, zhangyuan, lv, "#ce93d8", "5", "", 0.5); 
+                // 6. LV -> Thousand Trees (Dark)
+                drawPath(ctx, lv, thousandTrees, "#7b1fa2", "6");
+                // 7. Thousand Trees -> Circus (Light)
+                drawPath(ctx, thousandTrees, circus, "#ce93d8", "7");
+                // 8. Circus -> Hotel (Dark)
+                drawPath(ctx, circus, hotel, "#7b1fa2", "8");
+
+                drawLocation(ctx, xujiahui, "#fff", "#9c27b0");
+                drawLocation(ctx, wukang, "#fff", "#9c27b0");
+                drawLocation(ctx, jingan, "#fff", "#9c27b0");
+                drawLocation(ctx, zhangyuan, "#fff", "#9c27b0");
+                drawLocation(ctx, lv, "#fff", "#9c27b0"); 
+                drawLocation(ctx, thousandTrees, "#fff", "#9c27b0");
+                drawLocation(ctx, circus, "#fff", "#9c27b0");
+            }
+
+            // 公共地點
+            drawLocation(ctx, hotel, "#fff", "#333");
+            drawLocation(ctx, airport, "#e3f2fd", "#0277bd");
+
+            // 圖例
+            drawLegend(ctx, width - 240, 20);
+        }
+
+        function drawPath(ctx, start, end, color, stepNum, text = "", tValue = 0.5) {
+            ctx.beginPath();
+            ctx.setLineDash([10, 10]);
+            ctx.moveTo(start.x, start.y);
+            
+            const cpX = (start.x + end.x) / 2;
+            const cpY = (start.y + end.y) / 2;
+            ctx.quadraticCurveTo(cpX, cpY, end.x, end.y);
+            
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+            ctx.setLineDash([]); 
+
+            // Calculate arrow position
+            const targetR = 40; 
+            const angle = Math.atan2(end.y - cpY, end.x - cpX);
+            const arrowTipX = end.x - targetR * Math.cos(angle);
+            const arrowTipY = end.y - targetR * Math.sin(angle);
+
+            // Draw Arrow Head
+            ctx.beginPath();
+            ctx.moveTo(arrowTipX, arrowTipY);
+            ctx.lineTo(arrowTipX - 10 * Math.cos(angle - Math.PI/6), arrowTipY - 10 * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(arrowTipX - 10 * Math.cos(angle + Math.PI/6), arrowTipY - 10 * Math.sin(angle + Math.PI/6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Step Number Bubble
+            const t = tValue;
+            const midX = (1-t)*(1-t)*start.x + 2*(1-t)*t*cpX + t*t*end.x;
+            const midY = (1-t)*(1-t)*start.y + 2*(1-t)*t*cpY + t*t*end.y;
+
+            ctx.beginPath();
+            ctx.arc(midX, midY, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(stepNum, midX, midY);
+
+            if (text) {
+                ctx.fillStyle = color;
+                ctx.font = "bold 14px Microsoft JhengHei";
+                ctx.fillText(text, midX + 25, midY);
+            }
+        }
+
+        function drawLocation(ctx, loc, bgColor, borderColor) {
+            const r = 35;
+            
+            // 陰影
+            ctx.beginPath();
+            ctx.arc(loc.x + 3, loc.y + 3, r, 0, 2 * Math.PI);
+            ctx.fillStyle = "rgba(0,0,0,0.15)";
+            ctx.fill();
+
+            // 圓本體
+            ctx.beginPath();
+            ctx.arc(loc.x, loc.y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = bgColor;
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = borderColor;
+            ctx.stroke();
+
+            // Emoji
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#000";
+            ctx.fillText(loc.icon, loc.x, loc.y + 2);
+
+            // 標籤背景與文字計算
+            ctx.font = "bold 16px Microsoft JhengHei";
+            const textWidth = ctx.measureText(loc.label).width;
+            const pad = 10;
+            const boxH = 24;
+            
+            let tx, ty, bx, by;
+
+            // 根據 align 屬性決定位置
+            const align = loc.labelAlign || 'bottom'; 
+
+            if (align === 'top') {
+                bx = loc.x - textWidth/2 - pad/2;
+                by = loc.y - r - boxH - 5;
+                tx = loc.x;
+                ty = loc.y - r - 18;
+            } else if (align === 'left') {
+                bx = loc.x - r - textWidth - pad - 5;
+                by = loc.y - boxH/2;
+                tx = loc.x - r - textWidth/2 - 10;
+                ty = loc.y;
+            } else if (align === 'right') {
+                bx = loc.x + r + 5;
+                by = loc.y - boxH/2;
+                tx = loc.x + r + textWidth/2 + 10;
+                ty = loc.y;
+            } else { 
+                // bottom
+                bx = loc.x - textWidth/2 - pad/2;
+                by = loc.y + r + 5;
+                tx = loc.x;
+                ty = loc.y + r + 18;
+            }
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+            ctx.fillRect(bx, by, textWidth + pad, boxH);
+            ctx.strokeRect(bx, by, textWidth + pad, boxH);
+            
+            ctx.fillStyle = "#333";
+            ctx.textAlign = "center"; 
+            ctx.textBaseline = "middle";
+            
+            if (align === 'left') ctx.fillText(loc.label, bx + textWidth/2 + pad/2, by + boxH/2);
+            else if (align === 'right') ctx.fillText(loc.label, bx + textWidth/2 + pad/2, by + boxH/2);
+            else ctx.fillText(loc.label, tx, ty);
+        }
+
+        function drawLegend(ctx, x, y) {
+            ctx.fillStyle = "rgba(255,255,255,0.9)";
+            ctx.fillRect(x, y, 220, 100);
+            ctx.strokeStyle = "#999";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, 220, 100);
+
+            ctx.font = "bold 16px Microsoft JhengHei";
+            ctx.fillStyle = "#333";
+            ctx.textAlign = "left";
+            ctx.fillText("行程 (Legend)", x + 15, y + 25);
+
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 50, 8, 0, 2*Math.PI);
+            ctx.fillStyle = "#ff5722";
+            ctx.fill();
+            ctx.fillStyle = "#333";
+            ctx.fillText("Day 2 (外灘經典)", x + 40, y + 55);
+
+            ctx.beginPath();
+            ctx.arc(x + 20, y + 80, 8, 0, 2*Math.PI);
+            ctx.fillStyle = "#9c27b0";
+            ctx.fill();
+            ctx.fillStyle = "#333";
+            ctx.fillText("Day 3 (文藝雜技)", x + 40, y + 85);
+        }
+    </script>
+</body>
+</html>
