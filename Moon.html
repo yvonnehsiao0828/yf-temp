@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Éclipse Céleste | 恆輝餐酒館 v2.1</title>
+    <!-- 引入 FontAwesome 用於社群圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- 全域變數設定 --- */
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #2c3e50;
+            --accent-color: #d4af37; /* 香檳金 */
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --moon-bg: #e0e0e0;
+            --moon-glow: 0 0 20px rgba(0,0,0,0.1);
+            --btn-bg: #2c3e50;
+            --btn-text: #fff;
+            --font-main: 'Helvetica Neue', 'Arial', sans-serif;
+            --font-serif: 'Georgia', serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0b0d17;
+            --text-color: #e0e0e0;
+            --accent-color: #9d4edd; /* 霓虹紫 */
+            --card-bg: rgba(20, 24, 35, 0.7);
+            --moon-bg: #f1c40f; /* 亮黃月亮 */
+            --moon-glow: 0 0 50px rgba(241, 196, 15, 0.6);
+            --btn-bg: #9d4edd;
+            --btn-text: #fff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.5s ease, color 0.3s ease; }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* --- 背景特效 --- */
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background: transparent;
+        }
+        
+        [data-theme="dark"] .stars {
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 150px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 300px 300px;
+            animation: twinkle 5s infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* --- 導覽列 --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        /* --- Switch 開關設計 --- */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+        .theme-switch input {
+            display: none;
+        }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+        }
+        .slider:before {
+            background-color: #fff;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 26px;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        /* Icon 顯示邏輯 */
+        .icon-sun, .icon-moon {
+            font-size: 14px;
+            z-index: 1;
+        }
+        .icon-sun { color: #f39c12; margin-left: 5px; opacity: 1; }
+        .icon-moon { color: #f1c40f; margin-right: 5px; opacity: 0; }
+
+        input:checked + .slider {
+            background-color: #2c3e50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        input:checked + .slider .icon-sun { opacity: 0; }
+        input:checked + .slider .icon-moon { opacity: 1; }
+
+
+        /* --- Hero Section (首屏) --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding-top: 80px;
+        }
+
+        /* 3D 月球與月相變化 (修正版) */
+        .moon-container {
+            width: 280px;
+            height: 280px;
+            margin-bottom: 30px;
+            position: relative;
+            /* 強制正圓 */
+            border-radius: 50%;
+            /* 避免橢圓 */
+            aspect-ratio: 1 / 1;
+        }
+
+        .moon {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--moon-bg);
+            /* 月球紋理 */
+            background-image: url('https://www.solarsystemscope.com/textures/download/2k_moon.jpg');
+            background-size: 200% 100%;
+            background-position: center;
+            box-shadow: inset -10px -10px 30px rgba(0,0,0,0.5), var(--moon-glow);
+            position: relative;
+            overflow: hidden; /* 重要：讓陰影不出界 */
+            animation: moonSpin 60s linear infinite;
+        }
+
+        /* 月相陰影 (Eclipse Effect) */
+        .moon-shadow {
+            position: absolute;
+            top: -10%; 
+            left: 100%; /* 起始點在右側外面 */
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            background-color: #000;
+            filter: blur(8px);
+            opacity: 0; /* 白天隱藏陰影 */
+            z-index: 2;
+        }
+
+        [data-theme="dark"] .moon-shadow {
+            opacity: 1;
+            animation: moonPhaseAnim 12s infinite linear;
+        }
+
+        /* 月球自轉 */
+        @keyframes moonSpin {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* 月相移動動畫 (模擬盈虧) */
+        @keyframes moonPhaseAnim {
+            0% { transform: translateX(0); } /* 滿月 */
+            40% { transform: translateX(-100%); } /* 全蝕/朔月 */
+            60% { transform: translateX(-100%); }
+            100% { transform: translateX(-220%); } /* 恢復滿月 */
+        }
+
+        /* 太空人 (SVG Embedded) */
+        .astronaut-container {
+            position: absolute;
+            top: 25%;
+            right: 10%;
+            width: 100px;
+            height: 100px;
+            animation: float 5s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        .astronaut-svg {
+            width: 100%;
+            height: auto;
+            drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(5deg); }
+            50% { transform: translateY(-20px) rotate(-5deg); }
+        }
+
+        .hero h1 {
+            font-family: var(--font-serif);
+            font-size: 3rem;
+            margin-bottom: 10px;
+            z-index: 5;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            z-index: 5;
+        }
+
+        .cta-btn {
+            background-color: var(--accent-color);
+            color: #fff;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 5;
+            transition: transform 0.2s;
+        }
+        .cta-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- 內容區塊 --- */
+        .section {
+            padding: 80px 10%;
+        }
+
+        .story {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+        .story-text {
+            flex: 1;
+            min-width: 300px;
+        }
+        .story-text h2 {
+            font-family: var(--font-serif);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        /* --- 菜單 --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .menu-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .menu-card h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed rgba(150,150,150,0.3);
+            padding-bottom: 5px;
+        }
+
+        /* --- 活動 --- */
+        .events-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+        .event-card {
+            min-width: 300px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .event-img {
+            height: 160px;
+            background-color: #333;
+            background-size: cover;
+            background-position: center;
+        }
+        .event-info { padding: 20px; }
+        .event-tag { background: var(--accent-color); color: #fff; padding: 3px 8px; font-size: 0.8rem; border-radius: 5px; }
+
+        /* --- 訂位 --- */
+        .reservation-box {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid var(--accent-color);
+            position: relative;
+        }
+        .reservation-box::before {
+            content: 'BOARDING PASS';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-color);
+            padding: 0 20px;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 10px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 12px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid #aaa;
+            color: var(--text-color);
+            border-radius: 5px;
+        }
+        .submit-btn {
+            width: 100%; padding: 15px;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .submit-btn:hover { opacity: 0.9; }
+
+        /* --- Footer & Social --- */
+        footer {
+            background: #000;
+            color: #fff;
+            padding: 50px 10%;
+            text-align: center;
+            margin-top: 50px;
+            border-top: 5px solid var(--accent-color);
+        }
+        .social-icons {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+        .social-link {
+            color: #fff;
+            font-size: 1.8rem;
+            transition: transform 0.3s, color 0.3s;
+        }
+        .social-link:hover {
+            color: var(--accent-color);
+            transform: translateY(-5px);
+        }
+        .version {
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 20px;
+            font-family: monospace;
+        }
+
+        /* RWD */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .nav-links { display: none; } /* 手機版隱藏選單 */
+            .story { flex-direction: column; }
+            .astronaut-container { width: 70px; height: 70px; top: 15%; right: 5%; }
+            .moon-container { width: 200px; height: 200px; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="stars"></div>
+
+    <!-- 導航 -->
+    <nav>
+        <div class="logo">L'Éclipse • 恆輝</div>
+        <div class="nav-links">
+            <a href="#about">關於</a>
+            <a href="#menu">星際菜單</a>
+            <a href="#events">活動</a>
+            <a href="#reservation">訂位</a>
+            
+            <!-- Switch 按鈕 -->
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" onchange="toggleTheme()">
+                    <div class="slider">
+                        <i class="fas fa-sun icon-sun"></i>
+                        <i class="fas fa-moon icon-moon"></i>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 首屏 Hero -->
+    <header class="hero">
+        <div class="moon-container">
+            <div class="moon">
+                <!-- 陰影層，用於製造月相變化 -->
+                <div class="moon-shadow"></div>
+            </div>
+        </div>
+        
+        <!-- 太空人 (內嵌 SVG，確保不會破圖) -->
+        <div class="astronaut-container">
+            <svg class="astronaut-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                   <circle cx="256" cy="256" r="240" fill="#fff" opacity="0.2"/>
+                   <!-- 簡易太空人繪製 -->
+                   <path fill="#e0e0e0" d="M180,180 h152 v150 h-152 z" rx="40" ry="40"/>
+                   <circle cx="256" cy="180" r="90" fill="#fff" stroke="#333" stroke-width="10"/>
+                   <rect x="180" y="280" width="152" height="180" rx="30" fill="#fff" stroke="#333" stroke-width="10"/>
+                   <path d="M210,160 Q256,120 302,160" stroke="#333" stroke-width="5" fill="none"/> 
+                   <!-- 面罩 -->
+                   <ellipse cx="256" cy="180" rx="60" ry="50" fill="#3498db"/>
+                   <ellipse cx="270" cy="170" rx="15" ry="10" fill="rgba(255,255,255,0.7)"/>
+                </g>
+            </svg>
+        </div>
+
+        <h1 id="heroTitle">晨光 • 早午餐</h1>
+        <p id="heroSlogan">「早安，阿姆斯壯。在靜海基地，品嚐第一道晨光的溫柔。」</p>
+        <a href="#reservation" class="cta-btn">預約登陸</a>
+    </header>
+
+    <!-- 故事區 -->
+    <section id="about" class="section">
+        <div class="story">
+            <div class="story-text">
+                <h2>神秘的第25個小時</h2>
+                <p>1969年，阿姆斯壯的一小步改變了世界。但在我們的故事裡，他不僅留下了腳印，還留下了一份「月球味覺檔案」。</p>
+                <br>
+                <p><b>恆輝 (L'Éclipse)</b> 是地球與外太空的交界處。早上，我們捕捉太陽風的能量，化作豐盛的法式早午餐；夜晚，我們收集月暈的引力，調製出讓人靈魂失重的酒精飲品。</p>
+            </div>
+            <div style="flex:1; text-align:center; font-size:4rem; color: var(--accent-color);">
+                👨‍🚀 🌑 🍸
+            </div>
+        </div>
+    </section>
+
+    <!-- 菜單區 -->
+    <section id="menu" class="section">
+        <h2 style="text-align: center; font-family: var(--font-serif); margin-bottom:40px;">星際補給站</h2>
+        <div class="menu-grid">
+            <!-- 早午餐 -->
+            <div class="menu-card" id="menu-brunch">
+                <h3><i class="fas fa-sun"></i> Solar Brunch (10:00-18:00)</h3>
+                <div class="menu-item"><span>阿波羅法式吐司</span><span>$280</span></div>
+                <div class="menu-item"><span>靜海佛陀碗 (素)</span><span>$320</span></div>
+                <div class="menu-item"><span>隕石炸雞班尼迪克蛋</span><span>$350</span></div>
+                <div class="menu-item"><span>反重力拿鐵</span><span>$150</span></div>
+            </div>
+
+            <!-- 晚餐酒 -->
+            <div class="menu-card" id="menu-bistro">
+                <h3><i class="fas fa-moon"></i> Lunar Bistro (18:00-03:00)</h3>
+                <div class="menu-item"><span>黑洞墨魚燉飯</span><span>$420</span></div>
+                <div class="menu-item"><span>月岩松露薯條</span><span>$220</span></div>
+                <div class="menu-item"><span>調酒：藍色多瑙河</span><span>$350</span></div>
+                <div class="menu-item"><span>調酒：休斯頓,我們有麻煩了</span><span>$400</span></div>
+            </div>
+
+            <!-- 甜點 -->
+            <div class="menu-card">
+                <h3><i class="fas fa-infinity"></i> Infinity Sweets</h3>
+                <div class="menu-item"><span>星空鏡面蛋糕</span><span>$200</span></div>
+                <div class="menu-item"><span>月相馬卡龍 (3入)</span><span>$180</span></div>
+                <div class="menu-item"><span>銀河檸檬塔</span><span>$160</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 活動區 -->
+    <section id="events" class="section">
+        <h2 style="text-align: center; margin-bottom: 30px;">月球基地活動</h2>
+        <div class="events-container">
+            <div class="event-card">
+                <div class="event-img" style="background-image: url('https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60');"></div>
+                <div class="event-info">
+                    <span class="event-tag">每週五 Night</span>
+                    <h4>月球漫步暢飲</h4>
+                    <p>穿著銀/白太空元素服裝，特調 Shot 免費一杯。</p>
+                </div>
+            </div>
+            <div class="event-card">
+                <div class="event-img" style="background-image: url('https://images.unsplash.com/photo-1532635241-17e820acc59f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60');"></div>
+                <div class="event-info">
+                    <span class="event-tag">滿月限定</span>
+                    <h4>狼人狂歡派對</h4>
+                    <p>滿月當晚，紅色系調酒全面第二杯半價。</p>
+                </div>
+            </div>
+            <div class="event-card">
+                <div class="event-img" style="background-image: url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60');"></div>
+                <div class="event-info">
+                    <span class="event-tag">講座</span>
+                    <h4>太空人私房菜</h4>
+                    <p>主廚復刻1969年阿波羅任務餐點風味。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 訂位區 -->
+    <section id="reservation" class="section">
+        <div class="reservation-box">
+            <h2 style="text-align: center; margin-bottom: 20px;">預約登陸艙位</h2>
+            <form onsubmit="event.preventDefault(); alert('預約資訊已發送至月球總部！我們將透過 Line 聯繫您。');">
+                <div class="form-group">
+                    <label>登陸代號 (姓名)</label>
+                    <input type="text" required placeholder="阿姆斯壯">
+                </div>
+                <div class="form-group">
+                    <label>聯絡頻率 (電話)</label>
+                    <input type="tel" required placeholder="09xx-xxx-xxx">
+                </div>
+                <div class="form-group">
+                    <label>登陸人數</label>
+                    <select>
+                        <option>1位探險家</option>
+                        <option>2位 (雙人漫步)</option>
+                        <option>3-4位 (小隊任務)</option>
+                        <option>5位以上 (建立基地)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>日期與時段</label>
+                    <input type="datetime-local" required>
+                </div>
+                <button type="submit" class="submit-btn">確認發射訊號</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer & Social Media -->
+    <footer>
+        <div class="logo">L'Éclipse Céleste</div>
+        <p>台北市信義區月球路 69 號 (月球背面入口)</p>
+        <p>營業時間：10:00 - 03:00</p>
+        
+        <div class="social-icons">
+            <a href="#" class="social-link" title="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link" title="Threads"><i class="fa-solid fa-at"></i></a> <!-- Threads icon -->
+            <a href="#" class="social-link" title="Line"><i class="fab fa-line"></i></a>
+        </div>
+        
+        <p class="version">System Version: v2.1-Beta (Phase Corrected)</p>
+        <p>&copy; 2025 L'Éclipse Restaurant. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // --- 核心邏輯 ---
+        const body = document.body;
+        const checkbox = document.getElementById('checkbox');
+        const heroTitle = document.getElementById('heroTitle');
+        const heroSlogan = document.getElementById('heroSlogan');
+
+        // 定義日夜內容
+        const content = {
+            light: {
+                title: "晨光 • 早午餐",
+                slogan: "「早安，阿姆斯壯。在靜海基地，品嚐第一道晨光的溫柔。」",
+            },
+            dark: {
+                title: "星空 • 餐酒館",
+                slogan: "「晚安，地球人。在月暈背面，釋放靈魂的無重力引力。」",
+            }
+        };
+
+        function setMode(mode) {
+            body.setAttribute('data-theme', mode);
+            heroTitle.innerText = content[mode].title;
+            heroSlogan.innerText = content[mode].slogan;
+            
+            // 同步 Switch 狀態
+            checkbox.checked = (mode === 'dark');
+        }
+
+        function toggleTheme() {
+            if (checkbox.checked) {
+                setMode('dark');
+            } else {
+                setMode('light');
+            }
+        }
+
+        // 自動偵測時間
+        function initTimeCheck() {
+            const hour = new Date().getHours();
+            // 晚上6點後到早上6點前為 Dark Mode
+            if (hour >= 18 || hour < 6) {
+                setMode('dark');
+            } else {
+                setMode('light');
+            }
+        }
+
+        // 頁面載入執行
+        window.onload = initTimeCheck;
+
+    </script>
+</body>
+</html>
